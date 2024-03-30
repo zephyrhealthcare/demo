@@ -12,6 +12,9 @@ sql:
 select all_rates, business_name, first_line_location_address, city_name, longitude, latitude 
 from locations where all_rates < ${priceFilter} order by all_rates desc
 ```
+```js
+    console.log('12323');
+```
 
 ```js
     var priceInput  =  Inputs.range([0, 2000], {label: "Max price", step: 25, });
@@ -29,9 +32,15 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
     var insuranceInput = Inputs.select(demo_insurance, {label: "Insurance Plan", format: x => x.name, value: demo_insurance.find(t => t.name === "United Healthcare Choice Plus")})
 ```
 
+```js
+    var getValue = function (index) {
+        return tmpTable.get(index).toArray();
+    } 
+```
+
 <!DOCTYPE html>
 <head>
-    <title>sidebar-v2 example</title>
+    <title>NYC MRI Pricing Example</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
@@ -84,9 +93,6 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
                 ${insuranceInput}
                 ${priceInput}
             </div>
-            <script>
-                console.log(44444)
-            </script>
         </div>
         <div class="leaflet-sidebar-pane" id="autopan">
             <h1 class="leaflet-sidebar-header">
@@ -121,13 +127,19 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
                 }
                 }))
             }</div>
+            <div class="card" id="mapupdate">${
+                for (let i=0; i <=100; ++i) {
+                    console.log(i);
+                }
+            }
+            </div>
+    </div>
         </div>
         <div class="leaflet-sidebar-pane" id="messages">
             <h1 class="leaflet-sidebar-header">Messages<span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
         </div>
     </div>
 </div>
-
 <div id="map" class = "full_map"></div>
 <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
     crossorigin=""></script>
@@ -182,4 +194,33 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
         });
     }
 </script>
+<script>
+    console.log("the realest pepe")
+    // for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
+    //     data  = tmpTable.get(i).toArray();
+    //     long  = data[4];
+    //     lat   = data[5];
+    //     name  = data[1];
+    //     price = data[0];
+    //     L.marker([lat, long]).bindPopup('<b>' + name + ' ' + price + '</b>').addTo(layerGroup);
+    //     console.log(i);
+    // }
+</script>
+
+```js
+    layerGroup.clearLayers();
+
+    for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
+        console.log("WHAT A WONDERFUL WORLD");
+
+        var data  = tmpTable.get(i).toArray();
+        let long  =  data[4];
+        let lat   = data[5];
+        let name  = data[1];
+        let price = data[0];
+
+        console.log(long)
+        L.marker([lat, long]).bindPopup('<b>' + name + ' ' + price + '</b>').addTo(layerGroup);
+    }
+```
 </body>
