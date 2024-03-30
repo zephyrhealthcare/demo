@@ -1,8 +1,11 @@
 ---
 theme: dashboard
 title: demo
+sidebar: false
 toc: false
 
+sql:
+   locations: ./data/nyc_provider_subset.csv
 ---
 
 <!DOCTYPE html>
@@ -38,7 +41,11 @@ toc: false
         }
     </style>
 </head>
-
+<body>
+<script>
+    const priceInput = await Inputs.range([0, 2000], {label: "Max price", step: 25, })
+    const priceFilter = await Generators.input(priceInput);
+</script>
 <!-- optionally define the sidebar content via HTML markup -->
 <div id="sidebar" class="leaflet-sidebar collapsed">
     <!-- nav tabs -->
@@ -57,9 +64,22 @@ toc: false
     <div class="leaflet-sidebar-content">
         <div class="leaflet-sidebar-pane" id="home">
             <h1 class="leaflet-sidebar-header">
-                sidebar-v2
+                Exploring MRI Pricing in New York City
                 <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
             </h1>
+            <div class="card" id="histogram" style="display: flex; flex-direction: column; gap: 1rem;">
+                ${priceFilter}
+                ${resize((width) => Plot.plot({
+                    title: "Price distribution of lower body MRI 🚀",
+                    subtitle: "Woah!",
+                    width,
+                    y: {grid: true, label: "Counts"},
+                    marks: [
+                        Plot.ruleY([0]),
+                        Plot.rectY(tmpTable, Plot.binX({y: "count"}, {x: "all_rates"}))
+                    ]
+                    }))}
+            </div>
             <p>A responsive sidebar for the mapping library <a href="https://leafletjs.com/">Leaflet</a>.</p>
             <p>Compatible with version 0.7 and 1.x (tested up to 1.6.0)</p>
             <p><b>Select the other panes for a showcase of each feature.</b></p>
@@ -72,8 +92,22 @@ toc: false
             </ul>
             <p class="lorem">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
             <p class="lorem">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
-            <p class="lorem">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
-            <p class="lorem">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+            <div class="card" id="table">${
+                resize((width) => Inputs.table(tmpTable, {
+                columns: [
+                    "all_rates",
+                    "business_name",
+                    "first_line_location_address",
+                    "city_name",
+                ],
+                header: {
+                    all_rates: "In-network rate",
+                    business_name: "Business name",
+                    first_line_location_address: "Address",
+                    city_name: "City",
+                }
+                }))
+            }</div>
         </div>
         <div class="leaflet-sidebar-pane" id="autopan">
             <h1 class="leaflet-sidebar-header">
@@ -94,15 +128,15 @@ toc: false
         </div>
     </div>
 </div>
+
 <div id="map" class = "full_map"></div>
-<a href="https://github.com/nickpeihl/leaflet-sidebar-v2/"><img style="position: fixed; top: 0; right: 0; border: 0; z-index: 1000;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
 <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
     crossorigin=""></script>
 <script src="components/leaflet-sidebar.js"></script>
 <script>
     // standard leaflet map setup
     var map = L.map('map');
-    map.setView([51.2, 7], 9);
+    map.setView([40.744, -73.975], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: 'Map data &copy; OpenStreetMap contributors'
@@ -148,3 +182,9 @@ toc: false
         });
     }
 </script>
+
+```sql id=tmpTable
+select all_rates, business_name, first_line_location_address, city_name, longitude, latitude 
+from locations where all_rates < 2000 order by all_rates desc
+```
+</body>

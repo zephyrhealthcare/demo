@@ -164,8 +164,6 @@ for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++)
 }
 
 console.log('HIIIII')
-console.log(markers[0])
-
 ```
 
 <!-- <div id = "map" style = "width: 900px; height: 580px"></div>
