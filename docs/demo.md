@@ -8,15 +8,25 @@ sql:
    locations: ./data/nyc_provider_subset.csv
 ---
 
+```sql id=tmpTable
+select all_rates, business_name, first_line_location_address, city_name, longitude, latitude 
+from locations where all_rates < ${priceFilter} order by all_rates desc
+```
+
 ```js
-    var sisterAlice = 32;
     var priceInput  =  Inputs.range([0, 2000], {label: "Max price", step: 25, });
     var priceFilter =  Generators.input(priceInput);
 ```
 
-```sql id=tmpTable
-select all_rates, business_name, first_line_location_address, city_name, longitude, latitude 
-from locations where all_rates < ${priceFilter} order by all_rates desc
+```js
+    var searchInput = Inputs.search(tmpTable, {placeholder: "Search for diagnostic tests..."});
+```
+
+```js
+    const demo_insurance = [  
+        {name: "United Healthcare Choice Plus"},
+    ]
+    var insuranceInput = Inputs.select(demo_insurance, {label: "Insurance Plan", format: x => x.name, value: demo_insurance.find(t => t.name === "United Healthcare Choice Plus")})
 ```
 
 <!DOCTYPE html>
@@ -53,19 +63,6 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
     </style>
 </head>
 <body>
-<!-- <script src="https://cdn.jsdelivr.net/npm/htl@0.3.1/dist/htl.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@observablehq/inputs@0.10.6/dist/inputs.min.js"></script>
-<script src="https://unpkg.com/@observablehq/stdlib@3.24.0/dist/stdlib.js"></script>
-<script type="module" src="components/test.js"></script>
-<script>
-    const sisterAlice = 55;
-    const priceFilter  =  Generators.input(Inputs.range([0, 2000], {label: "Max price", step: 25, }));
-    //const priceFilter =  Generators.input(priceInput);
-</script>
-<script>
-    const tony = 3;
-</script> -->
-<!-- optionally define the sidebar content via HTML markup -->
 <div id="sidebar" class="leaflet-sidebar collapsed">
     <!-- nav tabs -->
     <div class="leaflet-sidebar-tabs">
@@ -82,12 +79,21 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
     <!-- panel content -->
     <div class="leaflet-sidebar-content">
         <div class="leaflet-sidebar-pane" id="home">
+            <div class="card" id="histogram" style="display: flex; flex-direction: column; gap: 1rem;">
+                ${searchInput}
+                ${insuranceInput}
+                ${priceInput}
+            </div>
+            <script>
+                console.log(44444)
+            </script>
+        </div>
+        <div class="leaflet-sidebar-pane" id="autopan">
             <h1 class="leaflet-sidebar-header">
                 Exploring MRI Pricing in New York City
                 <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
             </h1>
             <div class="card" id="histogram" style="display: flex; flex-direction: column; gap: 1rem;">
-                ${priceInput}
                 ${resize((width) => Plot.plot({
                     title: "Price distribution of lower body MRIs",
                     subtitle: "Woah!",
@@ -116,20 +122,6 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
                 }))
             }</div>
         </div>
-        <div class="leaflet-sidebar-pane" id="autopan">
-            <h1 class="leaflet-sidebar-header">
-                autopan
-                <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
-            </h1>
-            <p>
-                <code>Leaflet.control.sidebar({ autopan: true })</code>
-                makes shure that the map center always stays visible.
-            </p>
-            <p>
-                The autopan behviour is responsive as well.
-                Try opening and closing the sidebar from this pane!
-            </p>
-        </div>
         <div class="leaflet-sidebar-pane" id="messages">
             <h1 class="leaflet-sidebar-header">Messages<span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
         </div>
@@ -143,12 +135,13 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
 <script>
     // standard leaflet map setup
     var map = L.map('map');
+    var layerGroup = L.layerGroup().addTo(map);
     map.setView([40.744, -73.975], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: 'Map data &copy; OpenStreetMap contributors'
     }).addTo(map);
-    L.marker([51.2, 7]).addTo(map);
+    L.marker([40.744, -73.975]).addTo(layerGroup);
     // create the sidebar instance and add it to the map
     var sidebar = L.control.sidebar({ container: 'sidebar' })
         .addTo(map)
