@@ -8,6 +8,17 @@ sql:
    locations: ./data/nyc_provider_subset.csv
 ---
 
+```js
+    var sisterAlice = 32;
+    var priceInput  =  Inputs.range([0, 2000], {label: "Max price", step: 25, });
+    var priceFilter =  Generators.input(priceInput);
+```
+
+```sql id=tmpTable
+select all_rates, business_name, first_line_location_address, city_name, longitude, latitude 
+from locations where all_rates < ${priceFilter} order by all_rates desc
+```
+
 <!DOCTYPE html>
 <head>
     <title>sidebar-v2 example</title>
@@ -42,10 +53,18 @@ sql:
     </style>
 </head>
 <body>
+<!-- <script src="https://cdn.jsdelivr.net/npm/htl@0.3.1/dist/htl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@observablehq/inputs@0.10.6/dist/inputs.min.js"></script>
+<script src="https://unpkg.com/@observablehq/stdlib@3.24.0/dist/stdlib.js"></script>
+<script type="module" src="components/test.js"></script>
 <script>
-    const priceInput = await Inputs.range([0, 2000], {label: "Max price", step: 25, })
-    const priceFilter = await Generators.input(priceInput);
+    const sisterAlice = 55;
+    const priceFilter  =  Generators.input(Inputs.range([0, 2000], {label: "Max price", step: 25, }));
+    //const priceFilter =  Generators.input(priceInput);
 </script>
+<script>
+    const tony = 3;
+</script> -->
 <!-- optionally define the sidebar content via HTML markup -->
 <div id="sidebar" class="leaflet-sidebar collapsed">
     <!-- nav tabs -->
@@ -68,9 +87,9 @@ sql:
                 <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
             </h1>
             <div class="card" id="histogram" style="display: flex; flex-direction: column; gap: 1rem;">
-                ${priceFilter}
+                ${priceInput}
                 ${resize((width) => Plot.plot({
-                    title: "Price distribution of lower body MRI 🚀",
+                    title: "Price distribution of lower body MRIs",
                     subtitle: "Woah!",
                     width,
                     y: {grid: true, label: "Counts"},
@@ -80,18 +99,6 @@ sql:
                     ]
                     }))}
             </div>
-            <p>A responsive sidebar for the mapping library <a href="https://leafletjs.com/">Leaflet</a>.</p>
-            <p>Compatible with version 0.7 and 1.x (tested up to 1.6.0)</p>
-            <p><b>Select the other panes for a showcase of each feature.</b></p>
-            <h2>More examples</h2>
-            <ul>
-                <li><a href="./position-right.html">Right aligned</a></li>
-                <li><a href="./halfheight.html">The sidebar adapts to map container size</a></li>
-                <li><a href="./leaflet-latest.html">Proof that it works with the latest leaflet version (if not, please report it!)</a></li>
-                <li><a href="./leaflet-0.7.html">Proof that it works with leaflet 0.7</a></li>
-            </ul>
-            <p class="lorem">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
-            <p class="lorem">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
             <div class="card" id="table">${
                 resize((width) => Inputs.table(tmpTable, {
                 columns: [
@@ -182,9 +189,4 @@ sql:
         });
     }
 </script>
-
-```sql id=tmpTable
-select all_rates, business_name, first_line_location_address, city_name, longitude, latitude 
-from locations where all_rates < 2000 order by all_rates desc
-```
 </body>
