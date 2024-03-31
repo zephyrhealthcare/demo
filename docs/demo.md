@@ -44,6 +44,29 @@ sql:
     } 
 ```
 
+```js
+    var getValueNPI = function (npi) {
+    for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
+        var data  = tmpTable.get(i).toArray();
+        if (npi == data[6]) {
+            let price = data[0];
+            let name  = data[1];
+            let add   = data[2];
+            let city  = data[3];
+            let long  = data[4];
+            let lat   = data[5];
+            return [price, name, add, city, long, lat, npi]
+            }
+        }
+    return -1
+    }
+```
+
+```js
+    const selectedNPI = Mutable(-1);
+    const update = () => selectedNPI.value = getValueNPI(selectedID);
+```
+
 <!DOCTYPE html>
 <head>
     <title>NYC MRI Pricing Example</title>
@@ -100,7 +123,9 @@ sql:
                 ${priceInput}
             </div>
             <div class="card" id="doctorCardZero" onmouseenter="showMarkerFunction()" style="display: flex; flex-direction: column; gap: 1rem;">
-                <h2>${getValue(0)}</h2>
+                <h2>${
+                    display(getValueNPI(selectedID))
+                }</h2>
             </div>            
             <div class="card" id="doctorCard1" style="display: flex; flex-direction: column; gap: 1rem;">
                 <h2>${getValue(1)}</h2>
@@ -162,7 +187,7 @@ sql:
     var map = L.map('map');
     var layerGroup = L.layerGroup().addTo(map);
     var markers = [];
-    var selectedID;
+    var selectedID = [];
     map.setView([40.744, -73.975], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
@@ -212,7 +237,6 @@ sql:
 
 <script>
     var showMarkerFunction = function(npi) {
-        console.log('enter card highlight point recenter map')
         for (var i in markers) {
             var markerID = markers[i].options.npi;
             if (markerID == npi) {
@@ -230,7 +254,10 @@ sql:
     for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
         let [price, name, add, city, long, lat, npi]  = getValue(i);
         var marker = L.marker([lat, long], {npi: npi}).bindPopup('<b>' + name + '</b><br>$' + price + '<br>' + add).addTo(layerGroup).on(
-            'click', function(e) {console.log(e.target.options.npi)}
+            'click', function(e) {    
+                selectedID.length = 0;
+                selectedID.push(e.target.options.npi)
+            }
         );
 
         markers.push(marker)
