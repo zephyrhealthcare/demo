@@ -14,7 +14,7 @@ sql:
 ```
 
 ```js
-    var priceInput  =  Inputs.range([0, 2000], {label: "Max price", step: 25, });
+    var priceInput  =  Inputs.range([350, 2000], {label: "Max price", step: 25, });
     var priceFilter =  Generators.input(priceInput);
 ```
 
@@ -46,6 +46,7 @@ sql:
 
 ```js
     var getValueNPI = function (npi) {
+    console.log(npi);
     for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
         var data  = tmpTable.get(i).toArray();
         if (npi == data[6]) {
@@ -60,11 +61,6 @@ sql:
         }
     return -1
     }
-```
-
-```js
-    const selectedNPI = Mutable(-1);
-    const update = () => selectedNPI.value = getValueNPI(selectedID);
 ```
 
 <!DOCTYPE html>
@@ -122,9 +118,12 @@ sql:
                 ${insuranceInput}
                 ${priceInput}
             </div>
+            <div class="card" id="displayOnClick" style="display: none; flex-direction: column; gap: 1rem;">
+                <h2 id="selectedLocation"></h2>
+            </div>
             <div class="card" id="doctorCardZero" onmouseenter="showMarkerFunction()" style="display: flex; flex-direction: column; gap: 1rem;">
                 <h2>${
-                    display(getValueNPI(selectedID))
+                    display(getValue(0))
                 }</h2>
             </div>            
             <div class="card" id="doctorCard1" style="display: flex; flex-direction: column; gap: 1rem;">
@@ -237,6 +236,7 @@ sql:
 
 <script>
     var showMarkerFunction = function(npi) {
+        console.log('gottohere')
         for (var i in markers) {
             var markerID = markers[i].options.npi;
             if (markerID == npi) {
@@ -257,6 +257,8 @@ sql:
             'click', function(e) {    
                 selectedID.length = 0;
                 selectedID.push(e.target.options.npi)
+                document.getElementById("displayOnClick").style.display = "flex";
+                document.getElementById("selectedLocation").innerHTML = e.target.options.npi
             }
         );
 
