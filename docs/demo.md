@@ -9,11 +9,8 @@ sql:
 ---
 
 ```sql id=tmpTable
-select all_rates, business_name, first_line_location_address, city_name, longitude, latitude 
-from locations where all_rates < ${priceFilter} order by all_rates desc
-```
-```js
-    console.log('12323');
+    select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi 
+    from locations where all_rates < ${priceFilter} order by all_rates desc
 ```
 
 ```js
@@ -34,7 +31,16 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
 
 ```js
     var getValue = function (index) {
-        return tmpTable.get(index).toArray();
+        var data  = tmpTable.get(index).toArray();
+        let price = data[0];
+        let name  = data[1];
+        let add   = data[2];
+        let city  = data[3];
+        let long  = data[4];
+        let lat   = data[5];
+        let npi   = data[6];
+
+        return [price, name, add, city, long, lat, npi]
     } 
 ```
 
@@ -66,7 +72,7 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
             height: 100%;
             left: 0;
             top: 0;
-            background: rgba(51,51,51,0.7);
+            background: rgba(0,0,0,0.7);
             z-index: 10;
         }
     </style>
@@ -88,10 +94,22 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
     <!-- panel content -->
     <div class="leaflet-sidebar-content">
         <div class="leaflet-sidebar-pane" id="home">
-            <div class="card" id="histogram" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="card" id="searchOptions" style="display: flex; flex-direction: column; gap: 1rem;">
                 ${searchInput}
                 ${insuranceInput}
                 ${priceInput}
+            </div>
+            <div class="card" id="doctorCardZero" onmouseenter="showMarkerFunction()" style="display: flex; flex-direction: column; gap: 1rem;">
+                <h2>${getValue(0)}</h2>
+            </div>            
+            <div class="card" id="doctorCard1" style="display: flex; flex-direction: column; gap: 1rem;">
+                <h2>${getValue(1)}</h2>
+            </div>
+            <div class="card" id="doctorCard" style="display: flex; flex-direction: column; gap: 1rem;">
+                <h2>${getValue(2)}</h2>
+            </div>
+            <div class="card" id="doctorCard" style="display: flex; flex-direction: column; gap: 1rem;">
+                <h2>${getValue(3)}</h2>
             </div>
         </div>
         <div class="leaflet-sidebar-pane" id="autopan">
@@ -127,11 +145,6 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
                 }
                 }))
             }</div>
-            <div class="card" id="mapupdate">${
-                for (let i=0; i <=100; ++i) {
-                    console.log(i);
-                }
-            }
             </div>
     </div>
         </div>
@@ -148,12 +161,14 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
     // standard leaflet map setup
     var map = L.map('map');
     var layerGroup = L.layerGroup().addTo(map);
+    var markers = [];
+    var selectedID;
     map.setView([40.744, -73.975], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: 'Map data &copy; OpenStreetMap contributors'
     }).addTo(map);
-    L.marker([40.744, -73.975]).addTo(layerGroup);
+    // L.marker([40.744, -73.975]).addTo(layerGroup);
     // create the sidebar instance and add it to the map
     var sidebar = L.control.sidebar({ container: 'sidebar' })
         .addTo(map)
@@ -194,33 +209,32 @@ from locations where all_rates < ${priceFilter} order by all_rates desc
         });
     }
 </script>
+
 <script>
-    console.log("the realest pepe")
-    // for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
-    //     data  = tmpTable.get(i).toArray();
-    //     long  = data[4];
-    //     lat   = data[5];
-    //     name  = data[1];
-    //     price = data[0];
-    //     L.marker([lat, long]).bindPopup('<b>' + name + ' ' + price + '</b>').addTo(layerGroup);
-    //     console.log(i);
-    // }
+    var showMarkerFunction = function(npi) {
+        console.log('enter card highlight point recenter map')
+        for (var i in markers) {
+            var markerID = markers[i].options.npi;
+            if (markerID == npi) {
+                markers[i].openPopup();
+            }
+        }
+        return 0
+    }
 </script>
 
 ```js
     layerGroup.clearLayers();
+    markers.length = 0;
 
     for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
-        console.log("WHAT A WONDERFUL WORLD");
+        let [price, name, add, city, long, lat, npi]  = getValue(i);
+        var marker = L.marker([lat, long], {npi: npi}).bindPopup('<b>' + name + '</b><br>$' + price + '<br>' + add).addTo(layerGroup).on(
+            'click', function(e) {console.log(e.target.options.npi)}
+        );
 
-        var data  = tmpTable.get(i).toArray();
-        let long  =  data[4];
-        let lat   = data[5];
-        let name  = data[1];
-        let price = data[0];
+        markers.push(marker)
 
-        console.log(long)
-        L.marker([lat, long]).bindPopup('<b>' + name + ' ' + price + '</b>').addTo(layerGroup);
     }
 ```
 </body>
