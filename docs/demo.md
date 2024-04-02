@@ -1,15 +1,15 @@
 ---
-theme: dashboard
+theme: glacier
 title: demo
 sidebar: false
 toc: false
 
 sql:
-   locations: ./data/nyc_provider_subset.csv
+   locations: ./data/nyc_provider_subset_demo.csv
 ---
 
 ```sql id=tmpTable
-    select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi 
+    select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi, diagnostic_name
     from locations where all_rates < ${priceFilter} order by all_rates desc
 ```
 
@@ -25,6 +25,8 @@ sql:
 ```js
     const demo_insurance = [  
         {name: "United Healthcare Choice Plus"},
+        {name: "Aetna Choice Plus"},
+        {name: "Humana Choice EPO"},
     ]
     var insuranceInput = Inputs.select(demo_insurance, {label: "Insurance Plan", format: x => x.name, value: demo_insurance.find(t => t.name === "United Healthcare Choice Plus")})
 ```
@@ -63,6 +65,17 @@ sql:
     }
 ```
 
+```js
+    var greenIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+```
+
 <!DOCTYPE html>
 <head>
     <title>NYC MRI Pricing Example</title>
@@ -70,6 +83,8 @@ sql:
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
         crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="components/leaflet-sidebar.css" />
     <style>
         body {
@@ -94,6 +109,39 @@ sql:
             background: rgba(0,0,0,0.7);
             z-index: 10;
         }
+        .card-content {
+            flex: 1;
+            padding-right: 16px;
+        }
+        .business-name {
+            font-size: 18px;
+            font-weight: 700; /* Bold */
+            margin-bottom: 8px;
+        }
+        .address {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .price {
+            font-size: 18px;
+            font-weight: 450; /* Medium */
+            color: #2196F3;
+            margin-top: auto;
+        }
+        .availability {
+            display: flex;
+            align-items: center;
+        }
+        .availability i {
+            margin-right: 8px;
+        }
+        .available {
+            color: #4CAF50; /* green */
+        }
+        .not-available {
+            color: #F44336; /* red */
+        }
     </style>
 </head>
 <body>
@@ -113,7 +161,12 @@ sql:
     <!-- panel content -->
     <div class="leaflet-sidebar-content">
         <div class="leaflet-sidebar-pane" id="home">
+        <h1 class="leaflet-sidebar-header">
+            Explore MRI Pricing in New York City
+            <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
+        </h1>
             <div class="card" id="searchOptions" style="display: flex; flex-direction: column; gap: 1rem;">
+                <h2>Search options:</h2>
                 ${searchInput}
                 ${insuranceInput}
                 ${priceInput}
@@ -121,20 +174,20 @@ sql:
             <div class="card" id="displayOnClick" style="display: none; flex-direction: column; gap: 1rem;">
                 <h2 id="selectedLocation"></h2>
             </div>
-            <div class="card" id="doctorCardZero" onmouseenter="showMarkerFunction()" style="display: flex; flex-direction: column; gap: 1rem;">
-                <h2>${
-                    display(getValue(0))
-                }</h2>
+            <!-- 
+            <div class="card" id="doctorCard0" onmouseenter="showMarkerFunction()" style="display: flex; flex-direction: column; gap: 1rem;">
+                <h2>${getValue(0)}</h2>
             </div>            
             <div class="card" id="doctorCard1" style="display: flex; flex-direction: column; gap: 1rem;">
                 <h2>${getValue(1)}</h2>
             </div>
-            <div class="card" id="doctorCard" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="card" id="doctorCard2" style="display: flex; flex-direction: column; gap: 1rem;">
                 <h2>${getValue(2)}</h2>
             </div>
-            <div class="card" id="doctorCard" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="card" id="doctorCard3" style="display: flex; flex-direction: column; gap: 1rem;">
                 <h2>${getValue(3)}</h2>
             </div>
+            -->
         </div>
         <div class="leaflet-sidebar-pane" id="autopan">
             <h1 class="leaflet-sidebar-header">
@@ -144,7 +197,6 @@ sql:
             <div class="card" id="histogram" style="display: flex; flex-direction: column; gap: 1rem;">
                 ${resize((width) => Plot.plot({
                     title: "Price distribution of lower body MRIs",
-                    subtitle: "Woah!",
                     width,
                     y: {grid: true, label: "Counts"},
                     marks: [
@@ -187,6 +239,7 @@ sql:
     var layerGroup = L.layerGroup().addTo(map);
     var markers = [];
     var selectedID = [];
+    var selectedMarker = [];
     map.setView([40.744, -73.975], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
@@ -251,14 +304,40 @@ sql:
     layerGroup.clearLayers();
     markers.length = 0;
 
+    var blueIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    var redIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    // .bindPopup('<b>' + name + '</b><br>$' + price + '<br>' + add)
     for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
         let [price, name, add, city, long, lat, npi]  = getValue(i);
-        var marker = L.marker([lat, long], {npi: npi}).bindPopup('<b>' + name + '</b><br>$' + price + '<br>' + add).addTo(layerGroup).on(
-            'click', function(e) {    
+        var marker = L.marker([lat, long], {price: price, name: name, add: add, city: city, npi: npi}).addTo(layerGroup).on(
+            'click', function(e) {
+                if (selectedMarker.length > 0) {
+                    selectedMarker[0].setIcon(blueIcon)
+                }   
                 selectedID.length = 0;
                 selectedID.push(e.target.options.npi)
+                this.setIcon(redIcon)
                 document.getElementById("displayOnClick").style.display = "flex";
-                document.getElementById("selectedLocation").innerHTML = e.target.options.npi
+                document.getElementById("selectedLocation").innerHTML = '<div class="card-content">' + '<div class="business-name">' + e.target.options.name + '</div>' + '<div class="address">' + e.target.options.add + ', ' + e.target.options.city + '</div>' + '</div>' +  '<div class="price">$' + e.target.options.price + '</div>'
+
+                selectedMarker.length = 0;
+                selectedMarker.push(this);
             }
         );
 
