@@ -5,11 +5,11 @@ sidebar: false
 toc: false
 
 sql:
-   locations: ./data/nyc_provider_subset_demo.csv
+   locations: ./data/nyc_provider_subset.csv
 ---
 
 ```sql id=tmpTable
-    select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi, diagnostic_name
+    select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi
     from locations where all_rates < ${priceFilter} order by all_rates desc
 ```
 
@@ -18,8 +18,17 @@ sql:
     var priceFilter =  Generators.input(priceInput);
 ```
 
-```js
+<!-- ```js
     var searchInput = Inputs.search(tmpTable, {placeholder: "Search for diagnostic tests..."});
+``` -->
+
+```js
+    const demo_diagnostics = [  
+        {name: "72195: MRI of the Pelvis, Without Contrast"},
+        {name: "72196: MRI of the Pelvis, With Contrast"},
+        {name: "72197: MRI of the Pelvis, With and Without Contrast"},
+    ]
+    var searchInput = Inputs.select(demo_diagnostics, {label: "Search across diagnostic tests...", format: x => x.name, value: demo_diagnostics.find(t => t.name === "72197: MRI of the Pelvis, With and Without Contrast")})
 ```
 
 ```js
@@ -93,7 +102,8 @@ sql:
         }
         html, body, #map {
             height: 100%;
-            font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+            font-family: 'Roboto', sans-serif;
+            /* font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif; */
         }
         .lorem {
             font-style: italic;
@@ -108,6 +118,15 @@ sql:
             top: 0;
             background: rgba(0,0,0,0.7);
             z-index: 10;
+        }
+        .card-custom {
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            padding: 16px;
+            display: flex;
+            align-items: flex-start;
+            position: relative;
         }
         .card-content {
             flex: 1;
@@ -128,19 +147,9 @@ sql:
             font-weight: 450; /* Medium */
             color: #2196F3;
             margin-top: auto;
-        }
-        .availability {
-            display: flex;
-            align-items: center;
-        }
-        .availability i {
-            margin-right: 8px;
-        }
-        .available {
-            color: #4CAF50; /* green */
-        }
-        .not-available {
-            color: #F44336; /* red */
+            position: absolute;
+            bottom: 69px;
+            left: 260px;
         }
     </style>
 </head>
@@ -334,7 +343,7 @@ sql:
                 selectedID.push(e.target.options.npi)
                 this.setIcon(redIcon)
                 document.getElementById("displayOnClick").style.display = "flex";
-                document.getElementById("selectedLocation").innerHTML = '<div class="card-content">' + '<div class="business-name">' + e.target.options.name + '</div>' + '<div class="address">' + e.target.options.add + ', ' + e.target.options.city + '</div>' + '</div>' +  '<div class="price">$' + e.target.options.price + '</div>'
+                document.getElementById("selectedLocation").innerHTML = '<div class="card-custom"><div class="card-content">' + '<div class="business-name">' + e.target.options.name + '</div>' + '<div class="address">' + e.target.options.add + ', ' + e.target.options.city + '</div>' + '</div>' +  '<div class="price">$' + e.target.options.price + '</div></div>'
 
                 selectedMarker.length = 0;
                 selectedMarker.push(this);
