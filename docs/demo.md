@@ -5,7 +5,7 @@ sidebar: false
 toc: false
 
 sql:
-   locations: ./data/nyc_provider_subset.csv
+   locations: ./data/nyc_provider_subset_demo.csv
 ---
 
 ```sql id=tmpTable
