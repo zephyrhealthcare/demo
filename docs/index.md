@@ -24,8 +24,8 @@ sql:
 
 ```js
     const demo_diagnostics = [  
-        {name: "72195: MRI of the Pelvis, Without Contrast"},
-        {name: "72196: MRI of the Pelvis, With Contrast"},
+        // {name: "72195: MRI of the Pelvis, Without Contrast"},
+        // {name: "72196: MRI of the Pelvis, With Contrast"},
         {name: "72197: MRI of the Pelvis, With and Without Contrast"},
     ]
     var searchInput = Inputs.select(demo_diagnostics, {label: "Search across diagnostic tests...", format: x => x.name, value: demo_diagnostics.find(t => t.name === "72197: MRI of the Pelvis, With and Without Contrast")})
@@ -34,8 +34,8 @@ sql:
 ```js
     const demo_insurance = [  
         {name: "United Healthcare Choice Plus"},
-        {name: "Aetna Choice Plus"},
-        {name: "Humana Choice EPO"},
+        // {name: "Aetna Choice Plus"},
+        // {name: "Humana Choice EPO"},
     ]
     var insuranceInput = Inputs.select(demo_insurance, {label: "Insurance Plan", format: x => x.name, value: demo_insurance.find(t => t.name === "United Healthcare Choice Plus")})
 ```
