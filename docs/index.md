@@ -5,17 +5,27 @@ sidebar: false
 toc: false
 
 sql:
-   locations: ./data/nyc_provider_subset_demo.csv
+   locations: ./data/yelp_merged_ny_sf_demo.csv
 ---
 
 ```sql id=tmpTable
-    select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi
+    select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi, api_url, score,review_count, map_area
     from locations where all_rates < ${priceFilter} order by all_rates desc
 ```
 
 ```js
     var priceInput  =  Inputs.range([350, 2000], {label: "Max price", step: 25, });
     var priceFilter =  Generators.input(priceInput);
+```
+
+```js
+    const demo_locations = [  
+        // {name: "72195: MRI of the Pelvis, Without Contrast"},
+        // {name: "72196: MRI of the Pelvis, With Contrast"},
+        {name: "NYC"},
+        {name: "Bay Area"},
+    ]
+    var locationInput = Inputs.select(demo_locations, {label: "Search across locations...", format: x => x.name, value: demo_locations.find(t => t.name === "NYC")})
 ```
 
 <!-- ```js
@@ -50,8 +60,11 @@ sql:
         let long  = data[4];
         let lat   = data[5];
         let npi   = data[6];
+        let api_url      = data[7];
+        let score        = data[8];
+        let review_count = data[9];
 
-        return [price, name, add, city, long, lat, npi]
+        return [price, name, add, city, long, lat, npi, api_url, score, review_count]
     } 
 ```
 
@@ -146,10 +159,20 @@ sql:
             font-size: 18px;
             font-weight: 450; /* Medium */
             color: #2196F3;
-            margin-top: auto;
+            /* margin-top: auto;
             position: absolute;
             bottom: 69px;
-            left: 260px;
+            left: 260px; */
+        }
+        .phone {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8 px;
+        }
+        .review {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8 px;
         }
     </style>
 </head>
@@ -178,6 +201,7 @@ sql:
                 <h2>Search options:</h2>
                 ${searchInput}
                 ${insuranceInput}
+                ${locationInput}
                 ${priceInput}
             </div>
             <div class="card" id="displayOnClick" style="display: none; flex-direction: column; gap: 1rem;">
@@ -250,6 +274,7 @@ sql:
     var selectedID = [];
     var selectedMarker = [];
     map.setView([40.744, -73.975], 13);
+    map.invalidateSize()
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: 'Map data &copy; OpenStreetMap contributors'
@@ -333,8 +358,8 @@ sql:
 
     // .bindPopup('<b>' + name + '</b><br>$' + price + '<br>' + add)
     for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
-        let [price, name, add, city, long, lat, npi]  = getValue(i);
-        var marker = L.marker([lat, long], {price: price, name: name, add: add, city: city, npi: npi}).addTo(layerGroup).on(
+        let [price, name, add, city, long, lat, npi, api_url, score, review_count]  = getValue(i);
+        var marker = L.marker([lat, long], {price: price, name: name, add: add, city: city, npi: npi, api_url: api_url, score: score, review_count: review_count}).addTo(layerGroup).on(
             'click', function(e) {
                 if (selectedMarker.length > 0) {
                     selectedMarker[0].setIcon(blueIcon)
@@ -343,8 +368,7 @@ sql:
                 selectedID.push(e.target.options.npi)
                 this.setIcon(redIcon)
                 document.getElementById("displayOnClick").style.display = "flex";
-                document.getElementById("selectedLocation").innerHTML = '<div class="card-custom"><div class="card-content">' + '<div class="business-name">' + e.target.options.name + '</div>' + '<div class="address">' + e.target.options.add + ', ' + e.target.options.city + '</div>' + '</div>' +  '<div class="price">$' + e.target.options.price + '</div></div>'
-
+                document.getElementById("selectedLocation").innerHTML = '<div class="card-custom"><div class="card-content">' + '<div class="business-name">' + e.target.options.name + '</div>' + '<div class="address">' + e.target.options.add + ', ' + e.target.options.city + '</div>' + '</div>' +  '<div class="price">$' + e.target.options.price + '</div>' + '</div>'
                 selectedMarker.length = 0;
                 selectedMarker.push(this);
             }
@@ -353,5 +377,7 @@ sql:
         markers.push(marker)
 
     }
+
+    map.invalidateSize()
 ```
 </body>
