@@ -5,27 +5,32 @@ sidebar: false
 toc: false
 
 sql:
-   locations: ./data/yelp_merged_ny_sf_demo.csv
+   locations: ./data/US_provider_subset.csv
 ---
 
-```sql id=tmpTable
+<!-- ```sql id=tmpTable
     select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi, api_url, score,review_count, map_area
+    from locations where all_rates < ${priceFilter} order by all_rates desc
+``` -->
+
+```sql id=tmpTable
+    select all_rates, business_name, first_line_location_address, city_name, longitude, latitude, npi
     from locations where all_rates < ${priceFilter} order by all_rates desc
 ```
 
 ```js
-    var priceInput  =  Inputs.range([350, 2000], {label: "Max price", step: 25, });
+    var priceInput  =  Inputs.range([350, 4000], {label: "Max price", step: 25, });
     var priceFilter =  Generators.input(priceInput);
 ```
 
 ```js
-    const demo_locations = [  
+    // const demo_locations = [  
         // {name: "72195: MRI of the Pelvis, Without Contrast"},
         // {name: "72196: MRI of the Pelvis, With Contrast"},
-        {name: "NYC"},
-        {name: "Bay Area"},
-    ]
-    var locationInput = Inputs.select(demo_locations, {label: "Search across locations...", format: x => x.name, value: demo_locations.find(t => t.name === "NYC")})
+    //     {name: "NYC"},
+    //     {name: "Bay Area"},
+    // ]
+    // var locationInput = Inputs.select(demo_locations, {label: "Search across locations...", format: x => x.name, value: demo_locations.find(t => t.name === "NYC")})
 ```
 
 <!-- ```js
@@ -194,14 +199,13 @@ sql:
     <div class="leaflet-sidebar-content">
         <div class="leaflet-sidebar-pane" id="home">
         <h1 class="leaflet-sidebar-header">
-            Explore MRI Pricing in New York City
+            Explore MRI Pricing across the US
             <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
         </h1>
             <div class="card" id="searchOptions" style="display: flex; flex-direction: column; gap: 1rem;">
                 <h2>Search options:</h2>
                 ${searchInput}
                 ${insuranceInput}
-                ${locationInput}
                 ${priceInput}
             </div>
             <div class="card" id="displayOnClick" style="display: none; flex-direction: column; gap: 1rem;">
@@ -381,3 +385,5 @@ sql:
     map.invalidateSize()
 ```
 </body>
+
+<!-- + '<div class="review">' + '<a href="google.com' + '">3.0' + '</a>' + '</div>'  -->
