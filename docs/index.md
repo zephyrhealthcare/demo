@@ -19,7 +19,7 @@ sql:
 ```
 
 ```js
-    var priceInput  =  Inputs.range([350, 4000], {label: "Max price", step: 25, });
+    var priceInput  =  Inputs.range([50, 4000], {label: "Max price", step: 25, });
     var priceFilter =  Generators.input(priceInput);
 ```
 
@@ -369,7 +369,8 @@ sql:
 
     // .bindPopup('<b>' + name + '</b><br>$' + price + '<br>' + add)
     // tmpTable.batches['0'].data.children['4'].values.length
-    for (let i = 0; i < getLength(); i++) {
+    var currLength = getLength()
+    for (let i = 0; i < currLength; i++) {
         let [price, name, add, city, long, lat, npi, api_url, score, review_count]  = getValue(i);
         var marker = L.marker([lat, long], {price: price, name: name, add: add, city: city, npi: npi, api_url: api_url, score: score, review_count: review_count}).addTo(layerGroup).on(
             'click', function(e) {
