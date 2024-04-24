@@ -73,6 +73,13 @@ sql:
     } 
 ```
 
+
+```js
+    var getLength = function () {
+        return tmpTable.toArray().length
+    }
+```
+
 ```js
     var getValueNPI = function (npi) {
     console.log(npi);
@@ -361,7 +368,8 @@ sql:
     });
 
     // .bindPopup('<b>' + name + '</b><br>$' + price + '<br>' + add)
-    for (let i = 0; i < tmpTable.batches['0'].data.children['4'].values.length; i++) {
+    // tmpTable.batches['0'].data.children['4'].values.length
+    for (let i = 0; i < getLength(); i++) {
         let [price, name, add, city, long, lat, npi, api_url, score, review_count]  = getValue(i);
         var marker = L.marker([lat, long], {price: price, name: name, add: add, city: city, npi: npi, api_url: api_url, score: score, review_count: review_count}).addTo(layerGroup).on(
             'click', function(e) {
