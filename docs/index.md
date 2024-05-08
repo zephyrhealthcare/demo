@@ -206,7 +206,7 @@ sql:
     <div class="leaflet-sidebar-content">
         <div class="leaflet-sidebar-pane" id="home">
         <h1 class="leaflet-sidebar-header">
-            Explore MRI Pricing across the US
+            Explore MRI Pricing across NYC
             <span class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></span>
         </h1>
             <div class="card" id="searchOptions" style="display: flex; flex-direction: column; gap: 1rem;">
